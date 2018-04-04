@@ -3,9 +3,9 @@ import java.sql.*;
 import java.io.*;
 public class CSCI3170Proj {
 
-	public static String dbAddress = "jdbc:mysql://projgw.cse.cuhk.edu.hk:2312/db00";
-	public static String dbUsername = "Group00";
-	public static String dbPassword = "CSCI3170";
+	public static String dbAddress = "jdbc:mysql://projgw.cse.cuhk.edu.hk:2312/db12";
+	public static String dbUsername = "Group12";
+	public static String dbPassword = "group12";
 
 	public static Connection connectToOracle(){
 		Connection con = null;
@@ -22,70 +22,73 @@ public class CSCI3170Proj {
 	}
 
 	public static void createTables(Connection mySQLDB) throws SQLException{
-		String categorySQL = "CREATE TABLE category (";
-		categorySQL += "c_id INT PRIMARY KEY NOT NULL,";
-		categorySQL += "c_name VARCHAR(20) NOT NULL,";
-		categorySQL += "CHECK (c_id BETWEEN 1 AND 9))";
+		String NEASQL = "CREATE TABLE NEA (";
+		NEASQL += "NID VARCHAR(10) PRIMARY KEY NOT NULL,";
+		NEASQL += "Distance DOUBLE PRECISION(10,2) NOT NULL,"; // DOUBLE Positive
+		NEASQL += "Family VARCHAR(6) NOT NULL,";
+		NEASQL += "Duration INT UNSIGNED NOT NULL,";
+		NEASQL += "Energy DOUBLE PRECISION(10,2) NOT NULL)"; // DOUBLE Positive
+		//categorySQL += "CHECK (c_id BETWEEN 1 AND 9))";
 
-		String manufacturerSQL = "CREATE TABLE manufacturer (";
-		manufacturerSQL += "m_id INT PRIMARY KEY NOT NULL,";
-		manufacturerSQL += "m_name VARCHAR(20) NOT NULL,";
-		manufacturerSQL += "m_addr VARCHAR(50) NOT NULL,";
-		manufacturerSQL += "m_phone INT NOT NULL,";
-		manufacturerSQL += "CHECK (m_id BETWEEN 1 AND 99),";
-		manufacturerSQL += "CHECK (m_phone BETWEEN 10000000 AND 99999999))";
+		String ContainSQL = "CREATE TABLE Contain (";
+		ContainSQL += "NID VARCHAR(10) PRIMARY KEY NOT NULL,";
+		ContainSQL += "Rtype VARCHAR(2),";
+		ContainSQL += "FOREIGN KEY (NID) REFERENCES NEA(NID))";
+		//manufacturerSQL += "m_id INT PRIMARY KEY NOT NULL,";
 
-		String salespersonSQL = "CREATE TABLE salesperson (";
-		salespersonSQL += "s_id INT PRIMARY KEY NOT NULL,";
-		salespersonSQL += "s_name VARCHAR(20) NOT NULL,";
-		salespersonSQL += "s_addr VARCHAR(50) NOT NULL,";
-		salespersonSQL += "s_phone INT NOT NULL,";
-		salespersonSQL += "s_experience INT NOT NULL,";
-		salespersonSQL += "CHECK (s_id BETWEEN 1 AND 99),";
-		salespersonSQL += "CHECK (s_phone BETWEEN 10000000 AND 99999999),";
-		salespersonSQL += "CHECK (s_experience BETWEEN 1 AND 9))";
+		String SpacecraftModelSQL = "CREATE TABLE Spacecraft_Model (";
+		SpacecraftModelSQL += "Agency VARCHAR(4) NOT NULL,";
+		SpacecraftModelSQL += "MID VARCHAR(4) NOT NULL,";
+		SpacecraftModelSQL += "Num INT NOT NULL,"; // At most 2 digits
+		SpacecraftModelSQL += "Charge INT NOT NULL,"; // At most 5 digits
+		SpacecraftModelSQL += "Duration INT UNSIGNED NOT NULL,";
+		SpacecraftModelSQL += "Energy DOUBLE PRECISION(10,2) NOT NULL,"; // DOUBLE Positive
+		SpacecraftModelSQL += "PRIMARY KEY (Agency, MID))";
+		//salespersonSQL += "s_id INT PRIMARY KEY NOT NULL,";
 
-		String partSQL = "CREATE TABLE part (";
-		partSQL += "p_id INT PRIMARY KEY NOT NULL,";
-		partSQL += "p_name VARCHAR(20) NOT NULL,";
-		partSQL += "p_price INT NOT NULL,";
-		partSQL += "m_id INT NOT NULL,";
-		partSQL += "c_id INT NOT NULL,";
-		partSQL += "p_quantity INT NOT NULL,";
-		partSQL += "p_warranty INT NOT NULL,";
-		partSQL += "FOREIGN KEY (m_id) REFERENCES manufacturer(m_id),";
-		partSQL += "FOREIGN KEY (c_id) REFERENCES category(c_id),";
-		partSQL += "CHECK (p_id BETWEEN 1 AND 999),";
-		partSQL += "CHECK (p_price BETWEEN 1 AND 99999),";
-		partSQL += "CHECK (p_warranty BETWEEN 1 AND 99),";
-		partSQL += "CHECK (p_quantity BETWEEN 0 AND 99))";
+		String AModelSQL = "CREATE TABLE A_Model (";
+		AModelSQL += "Agency VARCHAR(4) NOT NULL,";
+		AModelSQL += "MID VARCHAR(4) NOT NULL,";
+		AModelSQL += "Num INT NOT NULL,"; // At most 2 digits
+		AModelSQL += "Charge INT NOT NULL,"; // At most 5 digits
+		AModelSQL += "Duration INT UNSIGNED NOT NULL,";
+		AModelSQL += "Energy DOUBLE PRECISION(10,2) NOT NULL,"; // DOUBLE Positive
+		AModelSQL += "Capacity INT UNSIGNED NOT NULL,"; // At most 2 digits
+		AModelSQL += "PRIMARY KEY (Agency, MID))";
 
-		String transactionSQL = "CREATE TABLE transaction (";
-		transactionSQL += "t_id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,";
-		transactionSQL += "p_id INT NOT NULL,";
-		transactionSQL += "s_id INT NOT NULL,";
-		transactionSQL += "t_date DATE NOT NULL,";
-		transactionSQL += "FOREIGN KEY (p_id) REFERENCES part(p_id),";
-		transactionSQL += "FOREIGN KEY (s_id) REFERENCES salesperson(s_id),";
-		transactionSQL += "CHECK (t_id BETWEEN 1 AND 9999))";
+		String ResourceSQL = "CREATE TABLE Resource (";
+		ResourceSQL += "RType VARCHAR(2) PRIMIARY KEY NOT NULL,";
+		ResourceSQL += "Density DOUBLE PRECISION(6,2) NOT NULL,"; // DOUBLE Positive
+		ResourceSQL += "Value DOUBLE PRECISION(6,2) NOT NULL)"; // DOUBLE Positive
+
+		String RentalRecordSQL = "CREATE TABLE RentalRecord (";
+		RentalRecordSQL += "Agency VARCHAR(4) NOT NULL,";
+		RentalRecordSQL += "MID VARCHAR(4) NOT NULL,";
+		RentalRecordSQL += "SNum INT NOT NULL,"; // At most 2 digits
+		RentalRecordSQL += "CheckoutDate DATE,"; // Format YYYY-MM-DD
+		RentalRecordSQL += "ReturnDate DATE,"; // Format YYYY-MM-DD
+		RentalRecordSQL += "PRIMARY KEY (Agency, MID, SNum))";
 
 		Statement stmt  = mySQLDB.createStatement();
 		System.out.print("Processing...");
 
 		//System.err.println("Creating Category Table.");
-		stmt.execute(categorySQL);
+		stmt.execute(NEASQL);
 
 		//System.err.println("Creating Manufacturer Table.");
-		stmt.execute(manufacturerSQL);
+		stmt.execute(ContainSQL);
 		
 		//System.err.println("Creating Salesperson Table.");
-		stmt.execute(salespersonSQL);
+		stmt.execute(SpacecraftModelSQL);
 
 		//System.err.println("Creating Part Table.");
-		stmt.execute(partSQL);
+		stmt.execute(AModelSQL);
 
 		//System.err.println("Creating Transaction Table.");
-		stmt.execute(transactionSQL);
+		stmt.execute(ResourceSQL);
+
+		//System.err.println("Creating Transaction Table.");
+		stmt.execute(RentalRecordSQL);
 		System.out.println("Done! Database is initialized!");
 		stmt.close();
 	}
@@ -536,6 +539,13 @@ public class CSCI3170Proj {
 	}
 
 	public static void main(String[] args) {
+        try {
+		    Connection mySQLDB = connectToOracle();
+            createTables(mySQLDB);
+        }catch (SQLException e){
+            System.out.println(e);
+        }
+        /*
 		Scanner menuAns = new Scanner(System.in);
 		System.out.println("Welcome to sales system!");
 
@@ -571,5 +581,6 @@ public class CSCI3170Proj {
 
 		menuAns.close();
 		System.exit(0);
+*/
 	}
 }

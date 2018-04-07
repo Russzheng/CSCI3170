@@ -1,6 +1,12 @@
 import java.util.Scanner;
 import java.sql.*;
 import java.io.*;
+import java.text.SimpleDateFormat;
+
+//TODO: 1. The Range of RType Value
+//      2. 'null' of resource in file
+//      3. Str_to_date.
+
 public class CSCI3170Proj {
 
 	public static String dbAddress = "jdbc:mysql://projgw.cse.cuhk.edu.hk:2312/db12";
@@ -22,19 +28,13 @@ public class CSCI3170Proj {
 	}
 
 	public static void createTables(Connection mySQLDB) throws SQLException{
+        // TODO: Check double sign
 		String NEASQL = "CREATE TABLE NEA (";
 		NEASQL += "NID VARCHAR(10) PRIMARY KEY NOT NULL,";
 		NEASQL += "Distance DOUBLE PRECISION(10,2) NOT NULL,"; // DOUBLE Positive
 		NEASQL += "Family VARCHAR(6) NOT NULL,";
 		NEASQL += "Duration INT UNSIGNED NOT NULL,";
 		NEASQL += "Energy DOUBLE PRECISION(10,2) NOT NULL)"; // DOUBLE Positive
-		//categorySQL += "CHECK (c_id BETWEEN 1 AND 9))";
-
-		String ContainSQL = "CREATE TABLE Contain (";
-		ContainSQL += "NID VARCHAR(10) PRIMARY KEY NOT NULL,";
-		ContainSQL += "Rtype VARCHAR(2),";
-		ContainSQL += "FOREIGN KEY (NID) REFERENCES NEA(NID))";
-		//manufacturerSQL += "m_id INT PRIMARY KEY NOT NULL,";
 
 		String SpacecraftModelSQL = "CREATE TABLE Spacecraft_Model (";
 		SpacecraftModelSQL += "Agency VARCHAR(4) NOT NULL,";
@@ -44,7 +44,6 @@ public class CSCI3170Proj {
 		SpacecraftModelSQL += "Duration INT UNSIGNED NOT NULL,";
 		SpacecraftModelSQL += "Energy DOUBLE PRECISION(10,2) NOT NULL,"; // DOUBLE Positive
 		SpacecraftModelSQL += "PRIMARY KEY (Agency, MID))";
-		//salespersonSQL += "s_id INT PRIMARY KEY NOT NULL,";
 
 		String AModelSQL = "CREATE TABLE A_Model (";
 		AModelSQL += "Agency VARCHAR(4) NOT NULL,";
@@ -57,9 +56,15 @@ public class CSCI3170Proj {
 		AModelSQL += "PRIMARY KEY (Agency, MID))";
 
 		String ResourceSQL = "CREATE TABLE Resource (";
-		ResourceSQL += "RType VARCHAR(2) PRIMIARY KEY NOT NULL,";
+		ResourceSQL += "RType VARCHAR(2) PRIMARY KEY NOT NULL,";
 		ResourceSQL += "Density DOUBLE PRECISION(6,2) NOT NULL,"; // DOUBLE Positive
-		ResourceSQL += "Value DOUBLE PRECISION(6,2) NOT NULL)"; // DOUBLE Positive
+		ResourceSQL += "Value DOUBLE PRECISION(10,2) NOT NULL)"; // DOUBLE Positive
+
+		String ContainSQL = "CREATE TABLE Contain (";
+		ContainSQL += "NID VARCHAR(10) PRIMARY KEY NOT NULL,";
+		ContainSQL += "Rtype VARCHAR(2),";
+		ContainSQL += "FOREIGN KEY (NID) REFERENCES NEA(NID),";
+		ContainSQL += "FOREIGN KEY (RType) REFERENCES Resource(RType))";
 
 		String RentalRecordSQL = "CREATE TABLE RentalRecord (";
 		RentalRecordSQL += "Agency VARCHAR(4) NOT NULL,";
@@ -75,9 +80,6 @@ public class CSCI3170Proj {
 		//System.err.println("Creating Category Table.");
 		stmt.execute(NEASQL);
 
-		//System.err.println("Creating Manufacturer Table.");
-		stmt.execute(ContainSQL);
-		
 		//System.err.println("Creating Salesperson Table.");
 		stmt.execute(SpacecraftModelSQL);
 
@@ -87,6 +89,9 @@ public class CSCI3170Proj {
 		//System.err.println("Creating Transaction Table.");
 		stmt.execute(ResourceSQL);
 
+		//System.err.println("Creating Manufacturer Table.");
+		stmt.execute(ContainSQL);
+		
 		//System.err.println("Creating Transaction Table.");
 		stmt.execute(RentalRecordSQL);
 		System.out.println("Done! Database is initialized!");
@@ -97,11 +102,12 @@ public class CSCI3170Proj {
 		Statement stmt  = mySQLDB.createStatement();
 		System.out.print("Processing...");
 		stmt.execute("SET FOREIGN_KEY_CHECKS = 0;");
-		stmt.execute("DROP TABLE IF EXISTS category");
-		stmt.execute("DROP TABLE IF EXISTS manufacturer");
-		stmt.execute("DROP TABLE IF EXISTS part");
-		stmt.execute("DROP TABLE IF EXISTS salesperson");
-		stmt.execute("DROP TABLE IF EXISTS transaction");
+		stmt.execute("DROP TABLE IF EXISTS NEA");
+		stmt.execute("DROP TABLE IF EXISTS Spacecraft_Model");
+		stmt.execute("DROP TABLE IF EXISTS A_Model");
+		stmt.execute("DROP TABLE IF EXISTS Resource");
+		stmt.execute("DROP TABLE IF EXISTS RentalRecord");
+		stmt.execute("DROP TABLE IF EXISTS Contain");
 		stmt.execute("SET FOREIGN_KEY_CHECKS = 1;");
 		System.out.println("Done! Database is removed!");
 		stmt.close();
@@ -109,11 +115,13 @@ public class CSCI3170Proj {
 
 	public static void loadTables(Scanner menuAns, Connection mySQLDB) throws SQLException{
 
-		String categorySQL = "INSERT INTO category (c_id, c_name) VALUES (?,?)";
-		String manufacturerSQL = "INSERT INTO manufacturer (m_id, m_name, m_addr, m_phone) VALUES (?,?,?,?)";
-		String partSQL = "INSERT INTO part (p_id, p_name, p_price, m_id, c_id, p_warranty, p_quantity) VALUES (?,?,?,?,?,?,?)";
-		String salespersonSQL = "INSERT INTO salesperson (s_id, s_name, s_addr, s_phone, s_experience) VALUES (?,?,?,?,?)";
-		String transactionSQL = "INSERT INTO transaction (t_id, p_id, s_id, t_date) VALUES (?,?,?,STR_TO_DATE(?,'%d/%m/%Y'))";
+		String NEASQL = "INSERT INTO NEA (NID, Distance, Family, Duration, Energy) VALUES (?,?,?,?,?)";
+		String ContainSQL = "INSERT INTO Contain (NID, RType) VALUES (?,?)";
+		String SpacecraftModelSQL = "INSERT INTO Spacecraft_Model (Agency, MID, Num, Charge, Duration, Energy) VALUES (?,?,?,?,?,?)";
+		String AModelSQL = "INSERT INTO A_Model (Agency, MID, Num, Charge, Duration, Energy, Capacity) VALUES (?,?,?,?,?,?,?)";
+		String ResourceSQL = "INSERT INTO Resource (RType, Density, Value) VALUES (?,?,?)";
+		String RentalRecordSQL = "INSERT INTO RentalRecord (Agency, MID, SNum, CheckoutDate, ReturnDate) VALUES (?,?,?,STR_TO_DATE(?, '%d-%m-%Y'),STR_TO_DATE(?, '%d-%m-%Y'))";
+		//String ResourceSQL = "INSERT INTO Resource (RType, Density, Value) VALUES (?,?,?,STR_TO_DATE(?,'%d/%m/%Y'))";
 
 		String filePath = "";
 		String targetTable = "";
@@ -126,16 +134,24 @@ public class CSCI3170Proj {
 		}
 
 		System.out.print("Processing...");
-		//System.err.println("Loading Category");
+		//System.err.println("Loading NEA");
 		try{
-			PreparedStatement stmt = mySQLDB.prepareStatement(categorySQL);
+			PreparedStatement stmt = mySQLDB.prepareStatement(NEASQL);
 			String line = null;
-			BufferedReader dataReader = new BufferedReader(new FileReader(filePath+"/category.txt"));
+			BufferedReader dataReader = new BufferedReader(new FileReader(filePath+"/NEA.txt"));
 
+            int linecount = 0;
 			while ((line = dataReader.readLine()) != null) {
+                linecount++;
 				String[] dataFields = line.split("\t");
-				stmt.setInt(1, Integer.parseInt(dataFields[0]));
-				stmt.setString(2, dataFields[1]);
+                /*if (dataFields[0].equals("2010CO44")) {
+                    System.out.println(linecount);
+                }*/
+				stmt.setString(1, dataFields[0]);
+				stmt.setDouble(2, Double.parseDouble(dataFields[1]));
+                stmt.setString(3, dataFields[2]);
+                stmt.setInt(4, Integer.parseInt(dataFields[3]));
+                stmt.setDouble(5, Double.parseDouble(dataFields[4]));
 				stmt.addBatch();
 			}
 			stmt.executeBatch();
@@ -144,18 +160,79 @@ public class CSCI3170Proj {
 			System.out.println(e);
 		}
 
-		//System.err.println("Loading Manufacturer");
+		//System.err.println("Loading SpacecraftModel");
 		try{
-			PreparedStatement stmt = mySQLDB.prepareStatement(manufacturerSQL);
+			PreparedStatement stmt1 = mySQLDB.prepareStatement(SpacecraftModelSQL);
+			PreparedStatement stmt2 = mySQLDB.prepareStatement(AModelSQL);
 			String line = null;
-			BufferedReader dataReader = new BufferedReader(new FileReader(filePath+"/manufacturer.txt"));
+			BufferedReader dataReader = new BufferedReader(new FileReader(filePath+"/Spacecrafts.txt"));
+
+            int linecount = 0;
+			while ((line = dataReader.readLine()) != null) {
+                linecount++;
+				String[] dataFields = line.split("\t");
+                if (dataFields[3].equals("E")) {  // SpacecraftModel
+                    stmt1.setString(1, dataFields[0]); // Agency 
+                    stmt1.setString(2, dataFields[1]); // MID
+                    stmt1.setInt(3, Integer.parseInt(dataFields[2])); // Num
+                    stmt1.setInt(4, Integer.parseInt(dataFields[7])); // Charge
+                    stmt1.setInt(5, Integer.parseInt(dataFields[5])); // Duration 
+				    stmt1.setDouble(6, Double.parseDouble(dataFields[4])); // Energy
+				    stmt1.addBatch();
+                } else if (dataFields[3].equals("A")) {  // AModel
+                    stmt2.setString(1, dataFields[0]); // Agency 
+                    stmt2.setString(2, dataFields[1]); // MID
+                    stmt2.setInt(3, Integer.parseInt(dataFields[2])); // Num
+                    stmt2.setInt(4, Integer.parseInt(dataFields[7])); // Charge
+                    stmt2.setInt(5, Integer.parseInt(dataFields[5])); // Duration 
+				    stmt2.setDouble(6, Double.parseDouble(dataFields[4])); // Energy
+                    stmt2.setInt(7, Integer.parseInt(dataFields[6])); // Capacity 
+				    stmt2.addBatch();
+                } else {
+                    System.out.println("Wrong Spacecraft Type at line: " + linecount +" in Spacecrafts.txt.");
+                }
+			}
+			stmt1.executeBatch();
+			stmt1.close();
+			stmt2.executeBatch();
+			stmt2.close();
+		}catch (Exception e){
+			System.out.println(e);
+		}
+
+		//System.err.println("Loading Resource");
+		try{
+			PreparedStatement stmt = mySQLDB.prepareStatement(ResourceSQL);
+
+			String line = null;
+			BufferedReader dataReader = new BufferedReader(new FileReader(filePath+"/Resources.txt"));
 
 			while ((line = dataReader.readLine()) != null) {
 				String[] dataFields = line.split("\t");
-				stmt.setInt(1, Integer.parseInt(dataFields[0]));
-				stmt.setString(2, dataFields[1]);
-				stmt.setString(3, dataFields[2]);
-				stmt.setInt(4, Integer.parseInt(dataFields[3]));
+				stmt.setString(1, dataFields[0]);
+				stmt.setDouble(2, Double.parseDouble(dataFields[1]));
+				stmt.setDouble(3, Double.parseDouble(dataFields[2]));
+				stmt.addBatch();
+			}
+
+			stmt.executeBatch();
+			stmt.close();
+		}catch (Exception e){
+			System.out.println(e);
+		}
+
+		//System.err.println("Loading Contain");
+		try{
+			PreparedStatement stmt = mySQLDB.prepareStatement(ContainSQL);
+			String line = null;
+			BufferedReader dataReader = new BufferedReader(new FileReader(filePath+"/NEA.txt"));
+
+			while ((line = dataReader.readLine()) != null) {
+				String[] dataFields = line.split("\t");
+                if (!dataFields[5].equals("null")) {
+				    stmt.setString(1, dataFields[0]);
+				    stmt.setString(2, dataFields[5]);
+                }
 				stmt.addBatch();
 			}
 			stmt.executeBatch();
@@ -164,68 +241,31 @@ public class CSCI3170Proj {
 			System.out.println(e);
 		}
 
-		//System.err.println("Loading Part");
+		//System.err.println("Loading RentalRecord");
 		try{
-			PreparedStatement stmt = mySQLDB.prepareStatement(partSQL);
-
+			PreparedStatement stmt = mySQLDB.prepareStatement(RentalRecordSQL);
 			String line = null;
-			BufferedReader dataReader = new BufferedReader(new FileReader(filePath+"/part.txt"));
+			BufferedReader dataReader = new BufferedReader(new FileReader(filePath+"/RentalRecords.txt"));
 
 			while ((line = dataReader.readLine()) != null) {
 				String[] dataFields = line.split("\t");
-				stmt.setInt(1, Integer.parseInt(dataFields[0]));
+				stmt.setString(1, dataFields[0]);
 				stmt.setString(2, dataFields[1]);
-				stmt.setInt(3, Integer.parseInt(dataFields[2]));
-				stmt.setInt(4, Integer.parseInt(dataFields[3]));
-				stmt.setInt(5, Integer.parseInt(dataFields[4]));
-				stmt.setInt(6, Integer.parseInt(dataFields[5]));
-				stmt.setInt(7, Integer.parseInt(dataFields[6]));
+                stmt.setInt(3, Integer.parseInt(dataFields[2]));
+                // Checkout Date
+                if (dataFields[3].equals("null")) {
+                    stmt.setNull(4, java.sql.Types.DATE); 
+                } else {
+                    stmt.setString(4, dataFields[3]);
+                }
+                // Return Date
+                if (dataFields[4].equals("null")) {
+                    stmt.setNull(5, java.sql.Types.DATE); 
+                } else {
+                    stmt.setString(5, dataFields[4]);
+                }
+    
 				stmt.addBatch();
-			}
-
-			stmt.executeBatch();
-			stmt.close();
-		}catch (Exception e){
-			System.out.println(e);
-		}
-
-		//System.err.println("Loading Salesperson");
-		try{
-			PreparedStatement stmt = mySQLDB.prepareStatement(salespersonSQL);
-			String line = null;
-			BufferedReader dataReader = new BufferedReader(new FileReader(filePath+"/salesperson.txt"));
-
-			while ((line = dataReader.readLine()) != null) {
-				String[] dataFields = line.split("\t");
-				stmt.setInt(1, Integer.parseInt(dataFields[0]));
-				stmt.setString(2, dataFields[1]);
-				stmt.setString(3, dataFields[2]);
-				stmt.setInt(4, Integer.parseInt(dataFields[3]));
-				stmt.setInt(5, Integer.parseInt(dataFields[4]));
-				stmt.addBatch();
-			}
-			stmt.executeBatch();
-			stmt.close();
-		}catch (Exception e){
-			System.out.println(e);
-		}
-
-		//System.err.println("Loading Transaction");
-		try{
-			PreparedStatement stmt = mySQLDB.prepareStatement(transactionSQL);
-			String line = null;
-			BufferedReader dataReader = new BufferedReader(new FileReader(filePath+"/transaction.txt"));
-
-			while ((line = dataReader.readLine()) != null) {
-				String[] dataFields = line.split("\t");
-				stmt.setInt(1, Integer.parseInt(dataFields[0]));
-				stmt.setInt(2, Integer.parseInt(dataFields[1]));
-				stmt.setInt(3, Integer.parseInt(dataFields[2]));
-				stmt.setString(4, dataFields[3]);
-
-				//System.err.println("Record: " + i);
-				stmt.addBatch();
-				//i++;
 			}
 			stmt.executeBatch();
 			stmt.close();
@@ -237,7 +277,7 @@ public class CSCI3170Proj {
 	}
 
 	public static void showTables(Scanner menuAns, Connection mySQLDB) throws SQLException{
-		String[] table_name = {"category", "manufacturer", "part", "salesperson", "transaction"};
+		String[] table_name = {"NEA", "Spacecraft_Model", "A_Model", "Resource", "Contain", "RentalRecord"};
 
 		System.out.println("Number of records in each table:");
 		for (int i = 0; i < 5; i++){
@@ -260,13 +300,13 @@ public class CSCI3170Proj {
 			System.out.println("What kinds of operation would you like to perform?");
 			System.out.println("1. Create all tables");
 			System.out.println("2. Delete all tables");
-			System.out.println("3. Load from datafile");
+			System.out.println("3. Load data from a dataset");
 			System.out.println("4. Show number of records in each table");
-			System.out.println("5. Return to the main menu");
+			System.out.println("0. Return to the main menu");
 			System.out.print("Enter Your Choice: ");
 			answer = menuAns.nextLine();
 
-			if(answer.equals("1")||answer.equals("2")||answer.equals("3")||answer.equals("4")||answer.equals("5"))
+			if(answer.equals("1")||answer.equals("2")||answer.equals("3")||answer.equals("4")||answer.equals("0"))
 				break;
 			System.out.println("[Error]: Wrong Input, Type in again!!!");
 		}
@@ -539,15 +579,18 @@ public class CSCI3170Proj {
 	}
 
 	public static void main(String[] args) {
+		/*Scanner menuAns = new Scanner(System.in);
         try {
 		    Connection mySQLDB = connectToOracle();
-            createTables(mySQLDB);
+            // createTables(mySQLDB);
+            // loadTables(menuAns, mySQLDB);
+            // deleteTables(mySQLDB);
+            showTables(menuAns, mySQLDB);
         }catch (SQLException e){
             System.out.println(e);
-        }
-        /*
+        }*/
 		Scanner menuAns = new Scanner(System.in);
-		System.out.println("Welcome to sales system!");
+		System.out.println("NEAs Exploration Mission Design System");
 
 		while(true){
 			try{
@@ -556,9 +599,9 @@ public class CSCI3170Proj {
 				System.out.println("-----Main menu-----");
 				System.out.println("What kinds of operation would you like to perform?");
 				System.out.println("1. Operations for administrator");
-				System.out.println("2. Operations for salesperson");
-				System.out.println("3. Operations for manager");
-				System.out.println("4. Exit this program");
+				System.out.println("2. Operations for exploration companies (rental customers)");
+				System.out.println("3. Operations for spacecraft rental staff");
+				System.out.println("0. Exit this program");
 				System.out.print("Enter Your Choice: ");
 
 				String answer = menuAns.nextLine();
@@ -569,7 +612,7 @@ public class CSCI3170Proj {
 					staffMenu(menuAns, mySQLDB);
 				}else if(answer.equals("3")){
 					managerMenu(menuAns, mySQLDB);
-				}else if(answer.equals("4")){
+				}else if(answer.equals("0")){
 					break;
 				}else{
 					System.out.println("[Error]: Wrong Input, Type in again!!!");
@@ -581,6 +624,5 @@ public class CSCI3170Proj {
 
 		menuAns.close();
 		System.exit(0);
-*/
 	}
 }

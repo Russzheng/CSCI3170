@@ -1,0 +1,21 @@
+NEAs Exploration Mission Design System
+
+Part 0 : Operations for administrator - LI Changji
+    1. Create All Tables
+        Done.
+    2. Delete All Tables
+        Done. (Identical to drop tables)
+    3. Load data from dataset (testdata given in course website)
+        Done.
+        One Exception: java.sql.BatchUpdateException: Duplicate entry '2010CO44' for key 'PRIMARY'
+            a. Data in file is not duplicate
+            b. NEA.txt is executable ---> Create another file and copy & paste content. [Doesn't work]
+            c. Output # of line when encounter duplicated content ('2010C044') ---> Only one record.
+    4. Show All Tables
+        Done.
+        Result: Number of records in each table:
+                NEA: 73
+                Spacecraft_Model: 31
+                A_Model: 19
+                Resource: 5
+                Contain: 63

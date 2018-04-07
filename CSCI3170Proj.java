@@ -3,10 +3,6 @@ import java.sql.*;
 import java.io.*;
 import java.text.SimpleDateFormat;
 
-//TODO: 1. The Range of RType Value
-//      2. 'null' of resource in file
-//      3. Str_to_date.
-
 public class CSCI3170Proj {
 
 	public static String dbAddress = "jdbc:mysql://projgw.cse.cuhk.edu.hk:2312/db12";
@@ -135,122 +131,122 @@ public class CSCI3170Proj {
 
 		System.out.print("Processing...");
 		//System.err.println("Loading NEA");
-		try{
-			PreparedStatement stmt = mySQLDB.prepareStatement(NEASQL);
-			String line = null;
-			BufferedReader dataReader = new BufferedReader(new FileReader(filePath+"/NEA.txt"));
+        try{
+            PreparedStatement stmt = mySQLDB.prepareStatement(NEASQL);
+            String line = null;
+            BufferedReader dataReader = new BufferedReader(new FileReader(filePath+"/NEA.txt"));
 
             int linecount = 0;
-			while ((line = dataReader.readLine()) != null) {
+            while ((line = dataReader.readLine()) != null) {
                 linecount++;
-				String[] dataFields = line.split("\t");
+                String[] dataFields = line.split("\t");
                 /*if (dataFields[0].equals("2010CO44")) {
                     System.out.println(linecount);
                 }*/
-				stmt.setString(1, dataFields[0]);
-				stmt.setDouble(2, Double.parseDouble(dataFields[1]));
+                stmt.setString(1, dataFields[0]);
+                stmt.setDouble(2, Double.parseDouble(dataFields[1]));
                 stmt.setString(3, dataFields[2]);
                 stmt.setInt(4, Integer.parseInt(dataFields[3]));
                 stmt.setDouble(5, Double.parseDouble(dataFields[4]));
-				stmt.addBatch();
-			}
-			stmt.executeBatch();
-			stmt.close();
-		}catch (Exception e){
-			System.out.println(e);
-		}
+                stmt.addBatch();
+            }
+            stmt.executeBatch();
+            stmt.close();
+        }catch (Exception e){
+            System.out.println(e);
+        }
 
 		//System.err.println("Loading SpacecraftModel");
-		try{
-			PreparedStatement stmt1 = mySQLDB.prepareStatement(SpacecraftModelSQL);
-			PreparedStatement stmt2 = mySQLDB.prepareStatement(AModelSQL);
-			String line = null;
-			BufferedReader dataReader = new BufferedReader(new FileReader(filePath+"/Spacecrafts.txt"));
+        try{
+            PreparedStatement stmt1 = mySQLDB.prepareStatement(SpacecraftModelSQL);
+            PreparedStatement stmt2 = mySQLDB.prepareStatement(AModelSQL);
+            String line = null;
+            BufferedReader dataReader = new BufferedReader(new FileReader(filePath+"/Spacecrafts.txt"));
 
             int linecount = 0;
-			while ((line = dataReader.readLine()) != null) {
+            while ((line = dataReader.readLine()) != null) {
                 linecount++;
-				String[] dataFields = line.split("\t");
+                String[] dataFields = line.split("\t");
                 if (dataFields[3].equals("E")) {  // SpacecraftModel
                     stmt1.setString(1, dataFields[0]); // Agency 
                     stmt1.setString(2, dataFields[1]); // MID
                     stmt1.setInt(3, Integer.parseInt(dataFields[2])); // Num
                     stmt1.setInt(4, Integer.parseInt(dataFields[7])); // Charge
                     stmt1.setInt(5, Integer.parseInt(dataFields[5])); // Duration 
-				    stmt1.setDouble(6, Double.parseDouble(dataFields[4])); // Energy
-				    stmt1.addBatch();
+                    stmt1.setDouble(6, Double.parseDouble(dataFields[4])); // Energy
+                    stmt1.addBatch();
                 } else if (dataFields[3].equals("A")) {  // AModel
                     stmt2.setString(1, dataFields[0]); // Agency 
                     stmt2.setString(2, dataFields[1]); // MID
                     stmt2.setInt(3, Integer.parseInt(dataFields[2])); // Num
                     stmt2.setInt(4, Integer.parseInt(dataFields[7])); // Charge
                     stmt2.setInt(5, Integer.parseInt(dataFields[5])); // Duration 
-				    stmt2.setDouble(6, Double.parseDouble(dataFields[4])); // Energy
+                    stmt2.setDouble(6, Double.parseDouble(dataFields[4])); // Energy
                     stmt2.setInt(7, Integer.parseInt(dataFields[6])); // Capacity 
-				    stmt2.addBatch();
+                    stmt2.addBatch();
                 } else {
                     System.out.println("Wrong Spacecraft Type at line: " + linecount +" in Spacecrafts.txt.");
                 }
-			}
-			stmt1.executeBatch();
-			stmt1.close();
-			stmt2.executeBatch();
-			stmt2.close();
-		}catch (Exception e){
-			System.out.println(e);
-		}
+            }
+            stmt1.executeBatch();
+            stmt1.close();
+            stmt2.executeBatch();
+            stmt2.close();
+        }catch (Exception e){
+            System.out.println(e);
+        }
 
 		//System.err.println("Loading Resource");
 		try{
-			PreparedStatement stmt = mySQLDB.prepareStatement(ResourceSQL);
+            PreparedStatement stmt = mySQLDB.prepareStatement(ResourceSQL);
 
-			String line = null;
-			BufferedReader dataReader = new BufferedReader(new FileReader(filePath+"/Resources.txt"));
+            String line = null;
+            BufferedReader dataReader = new BufferedReader(new FileReader(filePath+"/Resources.txt"));
 
-			while ((line = dataReader.readLine()) != null) {
-				String[] dataFields = line.split("\t");
-				stmt.setString(1, dataFields[0]);
-				stmt.setDouble(2, Double.parseDouble(dataFields[1]));
-				stmt.setDouble(3, Double.parseDouble(dataFields[2]));
-				stmt.addBatch();
-			}
+            while ((line = dataReader.readLine()) != null) {
+                String[] dataFields = line.split("\t");
+                stmt.setString(1, dataFields[0]);
+                stmt.setDouble(2, Double.parseDouble(dataFields[1]));
+                stmt.setDouble(3, Double.parseDouble(dataFields[2]));
+                stmt.addBatch();
+            }
 
-			stmt.executeBatch();
-			stmt.close();
+            stmt.executeBatch();
+            stmt.close();
 		}catch (Exception e){
 			System.out.println(e);
 		}
 
 		//System.err.println("Loading Contain");
 		try{
-			PreparedStatement stmt = mySQLDB.prepareStatement(ContainSQL);
-			String line = null;
-			BufferedReader dataReader = new BufferedReader(new FileReader(filePath+"/NEA.txt"));
+            PreparedStatement stmt = mySQLDB.prepareStatement(ContainSQL);
+            String line = null;
+            BufferedReader dataReader = new BufferedReader(new FileReader(filePath+"/NEA.txt"));
 
-			while ((line = dataReader.readLine()) != null) {
-				String[] dataFields = line.split("\t");
+            while ((line = dataReader.readLine()) != null) {
+                String[] dataFields = line.split("\t");
                 if (!dataFields[5].equals("null")) {
-				    stmt.setString(1, dataFields[0]);
-				    stmt.setString(2, dataFields[5]);
+                    stmt.setString(1, dataFields[0]);
+                    stmt.setString(2, dataFields[5]);
                 }
-				stmt.addBatch();
-			}
-			stmt.executeBatch();
-			stmt.close();
+                stmt.addBatch();
+            }
+            stmt.executeBatch();
+            stmt.close();
 		}catch (Exception e){
-			System.out.println(e);
+            System.out.println(e);
 		}
 
 		//System.err.println("Loading RentalRecord");
 		try{
-			PreparedStatement stmt = mySQLDB.prepareStatement(RentalRecordSQL);
-			String line = null;
-			BufferedReader dataReader = new BufferedReader(new FileReader(filePath+"/RentalRecords.txt"));
+            PreparedStatement stmt = mySQLDB.prepareStatement(RentalRecordSQL);
+            String line = null;
+            BufferedReader dataReader = new BufferedReader(new FileReader(filePath+"/RentalRecords.txt"));
 
-			while ((line = dataReader.readLine()) != null) {
-				String[] dataFields = line.split("\t");
-				stmt.setString(1, dataFields[0]);
-				stmt.setString(2, dataFields[1]);
+            while ((line = dataReader.readLine()) != null) {
+                String[] dataFields = line.split("\t");
+                stmt.setString(1, dataFields[0]);
+                stmt.setString(2, dataFields[1]);
                 stmt.setInt(3, Integer.parseInt(dataFields[2]));
                 // Checkout Date
                 if (dataFields[3].equals("null")) {
@@ -264,11 +260,11 @@ public class CSCI3170Proj {
                 } else {
                     stmt.setString(5, dataFields[4]);
                 }
-    
-				stmt.addBatch();
-			}
-			stmt.executeBatch();
-			stmt.close();
+
+                stmt.addBatch();
+            }
+            stmt.executeBatch();
+            stmt.close();
 		}catch (Exception e){
 			System.out.println(e);
 		}
